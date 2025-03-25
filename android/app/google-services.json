@@ -12,7 +12,12 @@
           "package_name": "com.example.referral_memoneet"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "868936636119-jhclgfre95ikoq0fto2ejvsc1jvn88r1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBcPQ8RGiX3K6rVqjNUgUJLnxBfLxvNWy4"
@@ -20,7 +25,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "868936636119-jhclgfre95ikoq0fto2ejvsc1jvn88r1.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "868936636119-mbmj8d8fr3df8oouhcist35gr4ig1b0q.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.referralMemoneet"
+              }
+            }
+          ]
         }
       }
     }

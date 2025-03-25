@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:referral_memoneet/views/add_payment_method/model.dart';
 import 'package:referral_memoneet/widgets/custom_button.dart';
 
+
 class BankTransferForm extends StatelessWidget {
   const BankTransferForm({super.key});
 
@@ -72,7 +73,7 @@ class BankTransferForm extends StatelessWidget {
         CustomButton(
           text: 'Save Payment Method',
           onPressed: () async {
-            await viewModel.saveBankDetails();
+            await viewModel.saveBankDetails(context);
 
             if (!context.mounted) return;
             context.pop();

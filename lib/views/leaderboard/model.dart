@@ -1,58 +1,59 @@
 import 'package:flutter/foundation.dart';
 import 'package:referral_memoneet/models/leaderboard_entry_model.dart';
+import 'package:referral_memoneet/providers/firestore_provider.dart';
 
 class LeaderboardViewModel extends ChangeNotifier {
+  final FirestoreProvider _firestoreProvider = FirestoreProvider();
   List<LeaderboardEntry> _entries = [];
   bool _isLoading = false;
   String? _error;
-
+  String _period = 'weekly'; // Default to weekly
+  
   // Getters
   List<LeaderboardEntry> get entries => _entries;
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get hasError => _error != null;
-
+  String get period => _period;
+  
+  // Toggle between weekly and monthly
+  void togglePeriod() {
+    _period = _period == 'weekly' ? 'monthly' : 'weekly';
+    fetchLeaderboard();
+  }
+  
   // Fetch leaderboard data
   Future<void> fetchLeaderboard() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
-
+    
     try {
-      // TODO: Replace with actual API call
-      await Future.delayed(const Duration(seconds: 1));
-      _entries = [
-        LeaderboardEntry(
-            rank: 1,
-            name: 'John Doe',
-            score: 1200,
-            isCurrentUser: false,
-            earnings: 5 * 1200),
-        LeaderboardEntry(
-            rank: 2,
-            name: 'Jane Smith',
-            score: 1150,
-            isCurrentUser: false,
-            earnings: 5 * 1150),
-        LeaderboardEntry(
-            rank: 3,
-            name: 'Alice Brown',
-            score: 1100,
-            isCurrentUser: true,
-            earnings: 5 * 1100),
-        LeaderboardEntry(
-            rank: 4,
-            name: 'Bob Johnson',
-            score: 1050,
-            isCurrentUser: false,
-            earnings: 5 * 1050),
-        LeaderboardEntry(
-            rank: 5,
-            name: 'Charlie Wilson',
-            score: 1000,
-            isCurrentUser: false,
-            earnings: 5 * 1000),
-      ];
+      final leaderboardData = await _firestoreProvider.getLeaderboard(_period);
+      final currentUserPosition = await _firestoreProvider.getCurrentUserLeaderboardPosition(_period);
+      
+      _entries = leaderboardData.map((entry) {
+        return LeaderboardEntry(
+          rank: entry['rank'],
+          name: entry['name'],
+          score: entry['score'],
+          earnings: entry['earnings'],
+          isCurrentUser: currentUserPosition != null && 
+                         entry['partnerId'] == currentUserPosition['partnerId'],
+        );
+      }).toList();
+      
+      // If current user is not in top 20, add them at the end
+      if (currentUserPosition != null && 
+          !_entries.any((e) => e.isCurrentUser)) {
+        _entries.add(LeaderboardEntry(
+          rank: currentUserPosition['rank'],
+          name: currentUserPosition['name'],
+          score: currentUserPosition['score'],
+          earnings: currentUserPosition['earnings'],
+          isCurrentUser: true,
+        ));
+      }
     } catch (e) {
       _error = "Failed to fetch leaderboard data: ${e.toString()}";
     } finally {
@@ -60,7 +61,7 @@ class LeaderboardViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
-
+  
   // Refresh leaderboard data
   void refresh() {
     fetchLeaderboard();

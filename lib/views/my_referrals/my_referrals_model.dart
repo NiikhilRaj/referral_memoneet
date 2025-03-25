@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:referral_memoneet/providers/firestore_provider.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+import 'package:clipboard/clipboard.dart';
+import 'package:referral_memoneet/views/transaction_history/transaction_model.dart'
+    as transaction;
 
 class MyReferralsModel extends ChangeNotifier {
-  late String _userName = "ABC";
-  String _profilePictureUrl =
-      "https://img.freepik.com/free-photo/beautiful-domestic-cat-laying-fence_181624-43207.jpg";
+  String _userName = "";
+  String _profilePictureUrl = "";
   String _referralLink = "";
   int _referralCount = 0;
   double _referralEarnings = 0.0;
@@ -22,20 +27,30 @@ class MyReferralsModel extends ChangeNotifier {
   String get errorMessage => _errorMessage;
 
   // Initialize with user data
-  Future<void> initialize(String userId) async {
+  Future<void> initialize(BuildContext context, String userId) async {
     try {
       _setLoading(true);
 
-      // Here you would fetch data from your backend service
-      // Example: await _fetchUserData(userId);
-      // Example: await _fetchReferralData(userId);
+      final firestoreProvider =
+          Provider.of<FirestoreProvider>(context, listen: false);
 
-      // Mock data for demonstration
-      _userName = "John Doe";
-      _profilePictureUrl = "https://example.com/profile.jpg";
-      _referralLink = "https://yourdomain.page.link/refer?code=ABC123";
-      _referralCount = 5;
-      _referralEarnings = 25.0;
+      // Fetch partner details from Firestore
+      final partnerData = await firestoreProvider.getPartnerDetails(userId);
+
+      if (partnerData != null) {
+        _userName = partnerData['name'] ?? "User";
+        _profilePictureUrl = partnerData['photoURL'] ?? "";
+        _referralCount = partnerData['referralCount'] ?? 0;
+        _referralEarnings = (partnerData['referralEarnings'] ?? 0).toDouble();
+
+        // Generate referral link if not already available
+        if (_referralLink.isEmpty) {
+          await generateReferralLink(userId);
+        }
+      } else {
+        _setError("Could not find user data. Please try again later.");
+        return;
+      }
 
       _setLoading(false);
     } catch (e) {
@@ -46,8 +61,7 @@ class MyReferralsModel extends ChangeNotifier {
   // Copy referral link to clipboard
   Future<bool> copyReferralLink() async {
     try {
-      // Here you would implement the clipboard functionality
-      // For example: await Clipboard.setData(ClipboardData(text: _referralLink));
+      await FlutterClipboard.copy(_referralLink);
       return true;
     } catch (e) {
       _setError("Failed to copy link: ${e.toString()}");
@@ -60,12 +74,29 @@ class MyReferralsModel extends ChangeNotifier {
     try {
       _setLoading(true);
 
-      // Here you would call your dynamic links service
-      // Example: _referralLink = await DynamicLinkService.createReferralLink(userId);
+      // Create a dynamic link using Firebase Dynamic Links
+      final dynamicLinkParams = DynamicLinkParameters(
+        link: Uri.parse('https://memoneet.com/signup?ref=$userId'),
+        uriPrefix: 'https://memoneet.page.link',
+        androidParameters: const AndroidParameters(
+          packageName: 'com.memoneet.referral_app',
+        ),
+        iosParameters: const IOSParameters(
+          bundleId: 'com.memoneet.referralApp',
+          appStoreId: '123456789',
+        ),
+        socialMetaTagParameters: SocialMetaTagParameters(
+          title: 'Join MemoNeet',
+          description: 'Sign up using my referral link!',
+        ),
+      );
 
-      // Mock response
-      _referralLink =
-          "https://yourdomain.page.link/refer?code=${userId}_${DateTime.now().millisecondsSinceEpoch}";
+      final dynamicLink = await FirebaseDynamicLinks.instance.buildShortLink(
+        dynamicLinkParams,
+        shortLinkType: ShortDynamicLinkType.unguessable,
+      );
+
+      _referralLink = dynamicLink.shortUrl.toString();
 
       _setLoading(false);
       notifyListeners();
@@ -93,5 +124,55 @@ class MyReferralsModel extends ChangeNotifier {
     _error = false;
     _errorMessage = "";
     notifyListeners();
+  }
+
+  // Fetch user's referrals
+  Future<List<Map<String, dynamic>>> fetchUserReferrals(
+      BuildContext context, String userId) async {
+    try {
+      final firestoreProvider =
+          Provider.of<FirestoreProvider>(context, listen: false);
+      return await firestoreProvider.getPartnerReferrals(userId);
+    } catch (e) {
+      _setError("Failed to fetch referrals: ${e.toString()}");
+      return [];
+    }
+  }
+
+  // Request withdrawal
+  Future<bool> requestWithdrawal(BuildContext context, String userId,
+      double amount, String paymentMethod, String paymentDetails) async {
+    try {
+      if (amount > _referralEarnings) {
+        _setError("Insufficient balance for withdrawal");
+        return false;
+      }
+
+      _setLoading(true);
+
+      final firestoreProvider =
+          Provider.of<FirestoreProvider>(context, listen: false);
+
+      // Convert payment method string to enum
+      final paymentMode = paymentMethod == 'UPI'
+          ? transaction.PaymentMode.upi
+          : transaction.PaymentMode.bankAccount;
+
+      await firestoreProvider.createWithdrawalTransaction(
+        partnerId: userId,
+        amount: amount,
+        paymentMode: paymentMode,
+        paymentDetail: paymentDetails,
+      );
+
+      // Update local data to reflect the withdrawal
+      _referralEarnings -= amount;
+
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _setError("Withdrawal request failed: ${e.toString()}");
+      return false;
+    }
   }
 }

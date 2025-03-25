@@ -20,7 +20,7 @@ class WithdrawalRequestView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<WithdrawalRequestModel>(context);
+    final viewModel = Provider.of<WithdrawalRequestModel>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
