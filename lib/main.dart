@@ -5,13 +5,19 @@ import 'package:referral_memoneet/providers/dynamic_links_provider.dart';
 import 'package:referral_memoneet/providers/firestore_provider.dart';
 import 'package:referral_memoneet/providers/payments_provider.dart';
 import 'package:referral_memoneet/views/add_payment_method/view.dart';
-import 'package:referral_memoneet/views/my_referrals/view.dart';
-import 'package:referral_memoneet/views/onboarding/view.dart';
+import 'package:referral_memoneet/views/my_referrals/my_referrals_view.dart';
+import 'package:referral_memoneet/views/onboarding/onboarding_view.dart';
 import 'package:go_router/go_router.dart';
-import 'package:referral_memoneet/views/transaction_history/view.dart';
-import 'package:referral_memoneet/views/withdrawal_request/view.dart';
+import 'package:referral_memoneet/views/transaction_history/transaction_view.dart';
+import 'package:referral_memoneet/views/withdrawal_request/withdraw_view.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(RootApp());
 }
 
@@ -39,7 +45,7 @@ class RootApp extends StatelessWidget {
   }
 
   final GoRouter _router = GoRouter(
-    initialLocation: '/transaction-history',
+    initialLocation: '/referrals',
     routes: [
       GoRoute(
         path: '/onboarding',

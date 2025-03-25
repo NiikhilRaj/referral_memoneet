@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:referral_memoneet/views/my_referrals/model.dart';
+import 'package:referral_memoneet/views/my_referrals/my_referrals_model.dart';
 
 class ReferralLinkWidget extends StatelessWidget {
   const ReferralLinkWidget({

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "868936636119",
+    "project_id": "referral-memoneet",
+    "storage_bucket": "referral-memoneet.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:868936636119:android:72025668d24af4585c4292",
+        "android_client_info": {
+          "package_name": "com.example.referral_memoneet"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcPQ8RGiX3K6rVqjNUgUJLnxBfLxvNWy4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

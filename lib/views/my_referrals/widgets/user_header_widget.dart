@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:referral_memoneet/views/my_referrals/model.dart';
+import 'package:referral_memoneet/views/my_referrals/my_referrals_model.dart';
 
 class UserHeaderWidget extends StatelessWidget {
   const UserHeaderWidget({
     required this.viewModel,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   final MyReferralsModel viewModel;
 
@@ -22,7 +22,7 @@ class UserHeaderWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Hey, ${viewModel.userName}',
+              'Hey ${viewModel.userName}!',
               style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:referral_memoneet/views/onboarding/model.dart';
+import 'package:referral_memoneet/views/onboarding/onboarding_model.dart';
 
 class PaymentMethodStep extends StatelessWidget {
   const PaymentMethodStep({super.key});

@@ -5,7 +5,7 @@ import 'package:referral_memoneet/views/my_referrals/widgets/link_widget.dart';
 import 'package:referral_memoneet/views/my_referrals/widgets/referral_stats_widget.dart';
 import 'package:referral_memoneet/views/my_referrals/widgets/user_header_widget.dart';
 
-import '../../views/my_referrals/model.dart';
+import 'my_referrals_model.dart';
 
 class MyReferralsScreen extends StatelessWidget {
   const MyReferralsScreen({super.key});

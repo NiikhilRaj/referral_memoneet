@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:referral_memoneet/views/signup/model.dart';
+import 'package:referral_memoneet/views/signup/signup_model.dart';
 
 class SignupScreen extends StatelessWidget {
   const SignupScreen({super.key});

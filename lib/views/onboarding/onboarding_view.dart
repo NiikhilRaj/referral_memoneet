@@ -5,7 +5,7 @@ import 'package:referral_memoneet/views/onboarding/steps/payment_method_step.dar
 import 'package:referral_memoneet/views/onboarding/steps/personal_information_step.dart';
 import 'package:referral_memoneet/views/onboarding/steps/upi_details_step.dart';
 import 'package:referral_memoneet/widgets/custom_button.dart';
-import 'model.dart';
+import 'onboarding_model.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});

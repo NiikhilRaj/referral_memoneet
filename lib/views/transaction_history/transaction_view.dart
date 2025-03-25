@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:referral_memoneet/views/transaction_history/model.dart';
+import 'package:referral_memoneet/views/transaction_history/transaction_model.dart';
 
 class TransactionHistoryScreen extends StatelessWidget {
   const TransactionHistoryScreen({super.key});

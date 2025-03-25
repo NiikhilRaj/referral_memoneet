@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:referral_memoneet/views/my_referrals/model.dart';
+import 'package:go_router/go_router.dart';
+import 'package:referral_memoneet/views/my_referrals/my_referrals_model.dart';
 
 class BuildWithdrawButton extends StatelessWidget {
   const BuildWithdrawButton({required this.viewModel, super.key});
@@ -12,11 +13,7 @@ class BuildWithdrawButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: () {
           if (viewModel.referralEarnings >= 10) {
-            Navigator.pushNamed(
-              context,
-              '/withdrawal-request',
-              arguments: viewModel.referralEarnings,
-            );
+            context.push('/withdraw');
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(

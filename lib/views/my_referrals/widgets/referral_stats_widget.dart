@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import 'package:referral_memoneet/views/my_referrals/model.dart';
+import 'package:referral_memoneet/views/my_referrals/my_referrals_model.dart';
 
 class ReferralStatsWidget extends StatelessWidget {
   final MyReferralsModel viewModel;
