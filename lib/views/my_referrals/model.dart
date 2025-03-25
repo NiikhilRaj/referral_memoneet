@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 class MyReferralsModel extends ChangeNotifier {
   late String _userName = "ABC";
-  String _profilePictureUrl = "";
+  String _profilePictureUrl =
+      "https://img.freepik.com/free-photo/beautiful-domestic-cat-laying-fence_181624-43207.jpg";
   String _referralLink = "";
   int _referralCount = 0;
   double _referralEarnings = 0.0;

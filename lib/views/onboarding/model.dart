@@ -189,19 +189,39 @@ class OnboardingModel extends ChangeNotifier {
 }
 
 class BankDetails {
-  final String accountHolderName;
-  final String accountNumber;
-  final String ifscCode;
-  final String bankName;
-  final String? branch;
+  String _accountHolderName;
+  String _accountNumber;
+  String _ifscCode;
+  String _bankName;
+  String? _branch;
+
+  // Properties with setters
+  String get accountHolderName => _accountHolderName;
+  set accountHolderName(String value) => _accountHolderName = value;
+
+  String get accountNumber => _accountNumber;
+  set accountNumber(String value) => _accountNumber = value;
+
+  String get ifscCode => _ifscCode;
+  set ifscCode(String value) => _ifscCode = value;
+
+  String get bankName => _bankName;
+  set bankName(String value) => _bankName = value;
+
+  String? get branch => _branch;
+  set branch(String? value) => _branch = value;
 
   BankDetails({
-    required this.accountHolderName,
-    required this.accountNumber,
-    required this.ifscCode,
-    required this.bankName,
-    this.branch,
-  });
+    String accountHolderName = '',
+    String accountNumber = '',
+    String ifscCode = '',
+    String bankName = '',
+    String? branch,
+  })  : _accountHolderName = accountHolderName,
+        _accountNumber = accountNumber,
+        _ifscCode = ifscCode,
+        _bankName = bankName,
+        _branch = branch;
 
   BankDetails copyWith({
     String? accountHolderName,
