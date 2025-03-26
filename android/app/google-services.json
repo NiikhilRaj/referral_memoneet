@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "868936636119-ur0m4phigqbjd35trshub313rgekuobn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.referral_memoneet",
+            "certificate_hash": "7d557600e7b1a1ef1ba81e26982a457f9922b383"
+          }
+        },
+        {
           "client_id": "868936636119-jhclgfre95ikoq0fto2ejvsc1jvn88r1.apps.googleusercontent.com",
           "client_type": 3
         }

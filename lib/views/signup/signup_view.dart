@@ -4,7 +4,10 @@ import 'package:referral_memoneet/views/signup/signup_model.dart';
 
 class SignupScreen extends StatelessWidget {
   final String? referralCode;
-  const SignupScreen({this.referralCode, super.key});
+  const SignupScreen({
+    this.referralCode,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

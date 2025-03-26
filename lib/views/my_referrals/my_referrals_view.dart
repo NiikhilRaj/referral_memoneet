@@ -32,57 +32,62 @@ class _MyReferralsScreenState extends State<MyReferralsScreen> {
     });
   }
 
-Future<void> _initializeData() async {
-  final firestoreProvider = Provider.of<FirestoreProvider>(context, listen: false);
-  final firebaseAuth = firestoreProvider.currentUser;
+  Future<void> _initializeData() async {
+    final firestoreProvider =
+        Provider.of<FirestoreProvider>(context, listen: false);
+    final firebaseAuth = firestoreProvider.currentUser;
 
-  if (firebaseAuth != null) {
-    try {
-      setState(() {
-        _isInitializing = true;
-        _hasError = false;
-      });
-
-      final userId = firebaseAuth.uid;
-      
-      // Use null safety operators when checking document existence
-      final documentExists = await firestoreProvider.checkPartnerDocumentExists(userId);
-      debugPrint('Partner document exists check: $documentExists');
-      
-      if (documentExists != true) { // Change this line to handle null safely
-        // If document doesn't exist, create a basic one with onboarding complete
-        await firestoreProvider.createPartnerProfile(
-          userId: userId,
-          name: firebaseAuth.displayName ?? firebaseAuth.email?.split('@')[0] ?? "User",
-          email: firebaseAuth.email ?? "",
-          isOnboardingComplete: true // Set as complete
-        );
-        debugPrint('Created missing partner document');
-      }
-
-      await _model.initialize(context, userId);
-      
-    } catch (e) {
-      debugPrint('Error in _initializeData: $e');
-      setState(() {
-        _hasError = true;
-        _errorMessage = e.toString();
-      });
-    } finally {
-      if (mounted) {
+    if (firebaseAuth != null) {
+      try {
         setState(() {
-          _isInitializing = false;
+          _isInitializing = true;
+          _hasError = false;
         });
+
+        final userId = firebaseAuth.uid;
+
+        // Use null safety operators when checking document existence
+        final documentExists =
+            await firestoreProvider.checkPartnerDocumentExists(userId);
+        debugPrint('Partner document exists check: $documentExists');
+
+        if (documentExists != true) {
+          // Change this line to handle null safely
+          // If document doesn't exist, create a basic one with onboarding complete
+          await firestoreProvider.createPartnerProfile(context,
+              userId: userId,
+              name: firebaseAuth.displayName ??
+                  firebaseAuth.email?.split('@')[0] ??
+                  "User",
+              email: firebaseAuth.email ?? "",
+              isOnboardingComplete: true // Set as complete
+              );
+          debugPrint('Created missing partner document');
+        }
+
+        await _model.initialize(context, userId);
+      } catch (e) {
+        debugPrint('Error in _initializeData: $e');
+        setState(() {
+          _hasError = true;
+          _errorMessage = e.toString();
+        });
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isInitializing = false;
+          });
+        }
       }
-    }
-  } else {
-    // No user, redirect to login
-    debugPrint('No user found, redirecting to signup');
-    if (context.mounted) {
-      context.go('/signup');
+    } else {
+      // No user, redirect to login
+      debugPrint('No user found, redirecting to signup');
+      if (context.mounted) {
+        context.go('/signup');
+      }
     }
   }
-}
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(

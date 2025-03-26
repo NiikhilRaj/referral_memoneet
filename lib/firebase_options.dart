@@ -63,6 +63,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '868936636119',
     projectId: 'referral-memoneet',
     storageBucket: 'referral-memoneet.firebasestorage.app',
+    androidClientId: '868936636119-ur0m4phigqbjd35trshub313rgekuobn.apps.googleusercontent.com',
     iosClientId: '868936636119-mbmj8d8fr3df8oouhcist35gr4ig1b0q.apps.googleusercontent.com',
     iosBundleId: 'com.example.referralMemoneet',
   );

@@ -25,8 +25,6 @@ void main() async {
   runApp(RootApp());
 }
 
-
-
 class RootApp extends StatelessWidget {
   RootApp({super.key});
 
@@ -39,10 +37,11 @@ class RootApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => FirestoreProvider()),
         ChangeNotifierProvider(create: (_) => PaymentsProvider()),
         ChangeNotifierProxyProvider<FirestoreProvider, RedirectController>(
-        create: (context) => RedirectController(Provider.of<FirestoreProvider>(context, listen: false)),
-        update: (context, firestoreProvider, previous) => 
-            previous ?? RedirectController(firestoreProvider),
-      ),
+          create: (context) => RedirectController(
+              Provider.of<FirestoreProvider>(context, listen: false)),
+          update: (context, firestoreProvider, previous) =>
+              previous ?? RedirectController(firestoreProvider),
+        ),
       ],
       child: MaterialApp.router(
         routerConfig: _router,
@@ -63,7 +62,7 @@ class RootApp extends StatelessWidget {
         path: '/signup',
         name: 'signup',
         builder: (context, state) {
-          final referralCode = state.uri.queryParameters['ref'];
+          final referralCode = state.uri.queryParameters['referral'];
           return SignupScreen(
             referralCode: referralCode,
           );
@@ -95,27 +94,28 @@ class RootApp extends StatelessWidget {
       // Add more routes as needed
     ],
     redirect: (context, state) {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    
-    final isLoggedIn = authProvider.currentUser != null;
-    final isOnLoginPage = state.uri.path == '/signup';
-    
-    // If not logged in, redirect to signup (except if already there)
-    if (!isLoggedIn && !isOnLoginPage) {
-      final queryParams = state.uri.queryParameters.isNotEmpty
-          ? '?' + Uri(queryParameters: state.uri.queryParameters).query 
-          : '';
-      return '/signup$queryParams';
-    }
-    
-    // If logged in but on login page, go directly to referrals
-    if (isLoggedIn && isOnLoginPage) {
-      return '/referrals';
-    }
-    
-    // No redirection needed
-    return null;
-  },errorBuilder: (context, state) => Scaffold(
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      final isLoggedIn = authProvider.currentUser != null;
+      final isOnLoginPage = state.uri.path == '/signup';
+
+      // If not logged in, redirect to signup (except if already there)
+      if (!isLoggedIn && !isOnLoginPage) {
+        final queryParams = state.uri.queryParameters.isNotEmpty
+            ? '?' + Uri(queryParameters: state.uri.queryParameters).query
+            : '';
+        return '/signup$queryParams';
+      }
+
+      // If logged in but on login page, go directly to referrals
+      if (isLoggedIn && isOnLoginPage) {
+        return '/referrals';
+      }
+
+      // No redirection needed
+      return null;
+    },
+    errorBuilder: (context, state) => Scaffold(
       body: Center(
         child: Text('Error: ${state.error}'),
       ),

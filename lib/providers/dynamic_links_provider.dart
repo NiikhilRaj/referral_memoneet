@@ -4,7 +4,7 @@ import 'dart:async';
 
 class DynamicLinksProvider extends ChangeNotifier {
   final String _domain =
-      'YOUR_DOMAIN_URI_PREFIX.page.link'; // Replace with your domain from Firebase console
+      'referralmemoneet.page.link'; // Replace with your domain from Firebase console
 
   /// Creates a dynamic link for a specific partner
   Future<Uri> createPartnerReferralLink({
@@ -14,20 +14,21 @@ class DynamicLinksProvider extends ChangeNotifier {
   }) async {
     final dynamicLinkParams = DynamicLinkParameters(
       uriPrefix: _domain,
-      link: Uri.parse('https://referralmemoneet.page.link/referral?partnerId=$partnerId'),
-      androidParameters: const AndroidParameters(
-        packageName: 'com.example.referralmemoneet',
-        minimumVersion: 1,
-      ),
-      iosParameters: const IOSParameters(
-        bundleId: 'com.example.referral_memoneet',
-        minimumVersion: '1.0.0',
-      ),
-      socialMetaTagParameters: SocialMetaTagParameters(
-        title: 'Join through ${partnerName ?? "partner"} referral',
-        description: 'Use this link to sign up with a referral bonus!',
-        imageUrl: imageUrl != null ? Uri.parse(imageUrl) : null,
-      ),
+      link: Uri.parse(
+          'https://referralmemoneet.page.link/referral?partnerId=$partnerId'),
+      // androidParameters: const AndroidParameters(
+      //   packageName: 'com.example.referral_memoneet',
+      //   minimumVersion: 1,
+      // ),
+      // iosParameters: const IOSParameters(
+      //   bundleId: 'com.example.referralMemoneet',
+      //   minimumVersion: '1.0.0',
+      // ),
+      // socialMetaTagParameters: SocialMetaTagParameters(
+      //   title: 'Join through ${partnerName ?? "partner"} referral',
+      //   description: 'Use this link to sign up with a referral bonus!',
+      //   imageUrl: imageUrl != null ? Uri.parse(imageUrl) : null,
+      // ),
     );
 
     final shortLink = await FirebaseDynamicLinks.instance.buildShortLink(

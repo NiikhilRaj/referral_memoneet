@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:referral_memoneet/providers/dynamic_links_provider.dart';
 import 'package:referral_memoneet/views/onboarding/onboarding_model.dart';
 import 'package:referral_memoneet/views/transaction_history/transaction_model.dart'
     as txnModel;
@@ -16,7 +18,7 @@ class FirestoreProvider with ChangeNotifier {
   // Create or update partner profile
   // Update createPartnerProfile method to accept isOnboardingComplete parameter
 
-  Future<void> createPartnerProfile(
+  Future<void> createPartnerProfile(BuildContext context,
       {required String userId,
       required String name,
       required String email,
@@ -25,13 +27,16 @@ class FirestoreProvider with ChangeNotifier {
       }) async {
     try {
       debugPrint('Creating partner profile for userId: $userId');
-
+      final links = Provider.of<DynamicLinksProvider>(context, listen: false);
+      // final link = await links.createPartnerReferralLink(partnerId: userId);
+      final link = "https://google.com/";
       final userData = {
         'partnerId': userId,
         'name': name,
         'email': email,
         'referralCount': 0,
         'referralEarnings': 0.0,
+        'referralLink': link,
         'isOnboardingComplete': isOnboardingComplete, // Use the parameter value
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
@@ -51,6 +56,7 @@ class FirestoreProvider with ChangeNotifier {
           'name': name,
           'email': email,
           'isOnboardingComplete': isOnboardingComplete,
+          'referralLink': link,
           'updatedAt': FieldValue.serverTimestamp(),
         });
       }
@@ -233,79 +239,129 @@ class FirestoreProvider with ChangeNotifier {
 
   // TRANSACTION OPERATIONS
 
-  // Create a withdrawal transaction
-  Future<void> createWithdrawalTransaction({
-    required String partnerId,
-    required double amount,
-    required txnModel.PaymentMode paymentMode,
-    required String paymentDetail,
-  }) async {
+// Add this method to your FirestoreProvider class
+  Future<List<txnModel.Transaction>> getPartnerTransactions(
+      String partnerId) async {
     try {
-      // Check if partner has sufficient balance
-      final partnerDoc =
-          await _firestore.collection('partners').doc(partnerId).get();
-      final partnerData = partnerDoc.data();
+      debugPrint('Fetching transactions for partner: $partnerId');
 
-      if (partnerData == null || partnerData['referralEarnings'] < amount) {
-        throw Exception('Insufficient balance for withdrawal');
-      }
-
-      // Start a batch write to ensure atomicity
-      final batch = _firestore.batch();
-
-      // Create transaction document
-      final transactionRef = _firestore
-          .collection('partners')
-          .doc(partnerId)
+      // Query transactions where partnerId matches
+      final querySnapshot = await _firestore
           .collection('transactions')
-          .doc();
+          .where('partnerId', isEqualTo: partnerId)
+          .orderBy('timestamp', descending: true) // Most recent first
+          .get();
 
-      batch.set(transactionRef, {
-        'id': transactionRef.id,
-        'amount': amount,
-        'date': FieldValue.serverTimestamp(),
-        'paymentMode': paymentMode.toString().split('.').last,
-        'paymentDetail': paymentDetail,
-        'status': 'pending',
-        'type': 'withdrawal'
-      });
+      // Map the query results to Transaction objects
+      final transactions = querySnapshot.docs.map((doc) {
+        final data = doc.data();
 
-      // Deduct from partner's earnings
-      batch.update(_firestore.collection('partners').doc(partnerId), {
-        'referralEarnings': FieldValue.increment(-amount),
-      });
+        // Convert Firestore timestamp to DateTime
+        final timestamp = (data['timestamp'] as Timestamp).toDate();
 
-      await batch.commit();
+        // Convert payment mode string to enum
+        txnModel.PaymentMode paymentMode;
+        if (data['paymentMode'] == 'upi') {
+          paymentMode = txnModel.PaymentMode.upi;
+        } else {
+          paymentMode = txnModel.PaymentMode.bankAccount;
+        }
+
+        // Convert status string to enum
+        txnModel.TransactionStatus status;
+        switch (data['status']) {
+          case 'pending':
+            status = txnModel.TransactionStatus.pending;
+            break;
+          case 'completed':
+            status = txnModel.TransactionStatus.completed;
+            break;
+          case 'failed':
+            status = txnModel.TransactionStatus.failed;
+            break;
+          default:
+            status = txnModel.TransactionStatus.pending;
+        }
+
+        // Create and return Transaction object
+        return txnModel.Transaction(
+          id: doc.id,
+          amount: (data['amount'] as num).toDouble(),
+          date: timestamp,
+          paymentMode: paymentMode,
+          paymentDetail: data['paymentDetail'] ?? '',
+          status: status,
+        );
+      }).toList();
+
+      debugPrint('Found ${transactions.length} transactions');
+      return transactions;
     } catch (e) {
-      debugPrint('Error creating withdrawal transaction: $e');
+      debugPrint('Error fetching transactions: $e');
       rethrow;
     }
   }
 
-  // Get partner transactions
-  Future<List<txnModel.Transaction>> getPartnerTransactions(
-      String partnerId) async {
+// Add this method to create withdrawal transactions
+  Future<void> createWithdrawalTransaction({
+    required String partnerId,
+    required double amount,
+    required txnModel.PaymentMode paymentMode,
+    String? paymentDetail,
+  }) async {
     try {
-      final querySnapshot = await _firestore
-          .collection('partners')
-          .doc(partnerId)
-          .collection('transactions')
-          .orderBy('date', descending: true)
-          .get();
+      // Get partner details to include payment information
+      final partnerData = await getPartnerDetails(partnerId);
+      if (partnerData == null) {
+        throw Exception('Partner profile not found');
+      }
 
-      return querySnapshot.docs.map((doc) {
-        final data = doc.data();
-        return txnModel.Transaction(
-          id: doc.id,
-          amount: data['amount'],
-          date: (data['date'] as Timestamp).toDate(),
-          paymentMode: _getPaymentModeFromString(data['paymentMode']),
-          paymentDetail: data['paymentDetail'],
-          status: _getTransactionStatusFromString(data['status']),
-        );
-      }).toList();
+      String paymentDetailString = '';
+
+      // Get appropriate payment details based on the payment mode
+      if (paymentMode == PaymentMode.upi) {
+        if (partnerData['upiDetails'] != null) {
+          paymentDetailString = partnerData['upiDetails']['upiId'] ?? '';
+        }
+      } else {
+        if (partnerData['bankDetails'] != null) {
+          final bank = partnerData['bankDetails'];
+          paymentDetailString =
+              '${bank['accountHolderName']} - ${bank['accountNumber']} (${bank['ifscCode']})';
+        }
+      }
+
+      // Override with specific payment detail if provided
+      if (paymentDetail != null && paymentDetail.isNotEmpty) {
+        paymentDetailString = paymentDetail;
+      }
+
+      // Create transaction document
+      final transactionRef = _firestore.collection('transactions').doc();
+
+      await transactionRef.set({
+        'transactionId': transactionRef.id,
+        'partnerId': partnerId,
+        'amount': amount,
+        'timestamp': FieldValue.serverTimestamp(),
+        'paymentMode': paymentMode == PaymentMode.upi ? 'upi' : 'bankAccount',
+        'paymentDetail': paymentDetailString,
+        'status': 'pending', // Start as pending
+        'type': 'withdrawal',
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      // Update partner's balance
+      await _firestore.collection('partners').doc(partnerId).update({
+        'referralEarnings': FieldValue.increment(-amount),
+        'pendingWithdrawals': FieldValue.increment(amount),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      debugPrint('Created withdrawal transaction: ${transactionRef.id}');
     } catch (e) {
-      debugPrint('Error getting partner transactions: $e');
+      debugPrint('Error creating withdrawal transaction: $e');
       rethrow;
     }
   }

@@ -1,71 +1,114 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:referral_memoneet/views/transaction_history/transaction_model.dart';
 
-class TransactionHistoryScreen extends StatelessWidget {
+class TransactionHistoryScreen extends StatefulWidget {
   const TransactionHistoryScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => TransactionHistoryModel(),
-      child: const TransactionHistoryView(),
-    );
-  }
+  State<TransactionHistoryScreen> createState() => _TransactionHistoryScreenState();
 }
 
-class TransactionHistoryView extends StatefulWidget {
-  const TransactionHistoryView({super.key});
-
-  @override
-  State<TransactionHistoryView> createState() => _TransactionHistoryViewState();
-}
-
-class _TransactionHistoryViewState extends State<TransactionHistoryView> {
+class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
+  late TransactionHistoryModel _viewModel;
+  
   @override
   void initState() {
     super.initState();
-    // Fetch transactions after the widget is inserted in the tree
+    _viewModel = TransactionHistoryModel();
+    
+    // Fetch transactions when the screen is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<TransactionHistoryModel>(context, listen: false)
-          .fetchTransactions();
+      _viewModel.fetchTransactions();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<TransactionHistoryModel>(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Transaction History'),
-      ),
-      body: viewModel.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : viewModel.transactions.isEmpty
-              ? const Center(child: Text('No transaction history found'))
-              : ListView.builder(
-                  itemCount: viewModel.transactions.length,
-                  itemBuilder: (context, index) {
-                    final transaction = viewModel.transactions[index];
-                    return TransactionCard(transaction: transaction);
-                  },
+    return ChangeNotifierProvider.value(
+      value: _viewModel,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Transaction History'),
+        ),
+        body: Consumer<TransactionHistoryModel>(
+          builder: (context, model, child) {
+            if (model.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            
+            if (model.error != null) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Error: ${model.error}',
+                      style: const TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => model.fetchTransactions(),
+                      child: const Text('Retry'),
+                    ),
+                  ],
                 ),
+              );
+            }
+            
+            if (model.transactions.isEmpty) {
+              return const Center(
+                child: Text(
+                  'No transactions yet',
+                  style: TextStyle(fontSize: 16),
+                ),
+              );
+            }
+            
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: model.transactions.length,
+              itemBuilder: (context, index) {
+                final transaction = model.transactions[index];
+                return _buildTransactionCard(transaction);
+              },
+            );
+          },
+        ),
+      ),
     );
   }
-}
-
-class TransactionCard extends StatelessWidget {
-  final Transaction transaction;
-
-  const TransactionCard({super.key, required this.transaction});
-
-  @override
-  Widget build(BuildContext context) {
+  
+  Widget _buildTransactionCard(Transaction transaction) {
+    // Format date
+    final dateFormat = DateFormat('MMM d, yyyy');
+    final formattedDate = dateFormat.format(transaction.date);
+    
+    // Format amount
+    final amountFormat = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
+    final formattedAmount = amountFormat.format(transaction.amount);
+    
+    // Determine status color
+    Color statusColor;
+    switch (transaction.status) {
+      case TransactionStatus.completed:
+        statusColor = Colors.green;
+        break;
+      case TransactionStatus.pending:
+        statusColor = Colors.orange;
+        break;
+      case TransactionStatus.failed:
+        statusColor = Colors.red;
+        break;
+    }
+    
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -73,17 +116,28 @@ class TransactionCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '₹${transaction.amount}',
+                  formattedAmount,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Text(
-                  _formatDateTime(transaction.date),
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    transaction.status.name.toUpperCase(),
+                    style: TextStyle(
+                      color: statusColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ],
@@ -91,36 +145,41 @@ class TransactionCard extends StatelessWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                Icon(
-                  transaction.paymentMode == PaymentMode.upi
-                      ? Icons.account_balance_wallet
-                      : Icons.account_balance,
-                  color: Colors.blue,
-                  size: 16,
-                ),
+                const Icon(Icons.calendar_today, size: 16),
+                const SizedBox(width: 8),
+                Text(formattedDate),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.payment, size: 16),
                 const SizedBox(width: 8),
                 Text(
                   transaction.paymentMode == PaymentMode.upi
                       ? 'UPI'
-                      : 'Bank Account',
-                  style: const TextStyle(fontWeight: FontWeight.w500),
+                      : 'Bank Transfer',
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              transaction.paymentMode == PaymentMode.upi
-                  ? 'UPI ID: ${transaction.paymentDetail}'
-                  : 'Account No: ${transaction.paymentDetail}',
-              style: TextStyle(color: Colors.grey[700]),
-            ),
+            if (transaction.paymentDetail.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(Icons.info_outline, size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      transaction.paymentDetail,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
     );
-  }
-
-  String _formatDateTime(DateTime dateTime) {
-    return '${dateTime.day}/${dateTime.month}/${dateTime.year}, ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 }

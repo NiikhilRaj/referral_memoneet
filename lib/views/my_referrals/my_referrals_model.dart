@@ -76,13 +76,14 @@ class MyReferralsModel extends ChangeNotifier {
 
       // Create a dynamic link using Firebase Dynamic Links
       final dynamicLinkParams = DynamicLinkParameters(
-        link: Uri.parse('https://memoneet.com/signup?ref=$userId'),
-        uriPrefix: 'https://memoneet.page.link',
+        link:
+            Uri.parse('https://referralmemoneet.page.link/signup?ref=$userId'),
+        uriPrefix: 'https://referralmemoneet.page.link',
         androidParameters: const AndroidParameters(
           packageName: 'com.memoneet.referral_app',
         ),
         iosParameters: const IOSParameters(
-          bundleId: 'com.memoneet.referralApp',
+          bundleId: 'com.example.referralMemoneet',
           appStoreId: '123456789',
         ),
         socialMetaTagParameters: SocialMetaTagParameters(

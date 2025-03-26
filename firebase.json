@@ -1,1 +1,22 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"referral-memoneet","appId":"1:868936636119:android:72025668d24af4585c4292","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"referral-memoneet","configurations":{"android":"1:868936636119:android:72025668d24af4585c4292","ios":"1:868936636119:ios:c1bdb3223f8606bc5c4292"}}}}}}
+{
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "referral-memoneet",
+                    "appId": "1:868936636119:android:72025668d24af4585c4292",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "referral-memoneet",
+                    "configurations": {
+                        "android": "1:868936636119:android:72025668d24af4585c4292",
+                        "ios": "1:868936636119:ios:c1bdb3223f8606bc5c4292"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -3,8 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:referral_memoneet/providers/firestore_provider.dart';
 import 'package:referral_memoneet/models/bank_details_model.dart';
 
-
-
 class AddPaymentMethodViewModel extends ChangeNotifier {
   String selectedPaymentMethod = 'UPI';
   BankDetails bankDetails = BankDetails(
@@ -26,8 +24,6 @@ class AddPaymentMethodViewModel extends ChangeNotifier {
   Future<void> saveBankDetails(BuildContext context) async {
     final firebaseProvider =
         Provider.of<FirestoreProvider>(context, listen: false);
-
-        
   }
 
   Future<void> saveUpiDetails() async {}
