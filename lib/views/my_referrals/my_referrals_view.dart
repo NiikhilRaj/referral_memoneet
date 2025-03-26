@@ -33,8 +33,10 @@ class _MyReferralsScreenState extends State<MyReferralsScreen> {
   }
 
   Future<void> _initializeData() async {
-    final firestoreProvider =
-        Provider.of<FirestoreProvider>(context, listen: false);
+    final firestoreProvider = Provider.of<FirestoreProvider>(
+      context,
+      listen: false,
+    );
     final firebaseAuth = firestoreProvider.currentUser;
 
     if (firebaseAuth != null) {
@@ -47,25 +49,27 @@ class _MyReferralsScreenState extends State<MyReferralsScreen> {
         final userId = firebaseAuth.uid;
 
         // Use null safety operators when checking document existence
-        final documentExists =
-            await firestoreProvider.checkPartnerDocumentExists(userId);
+        final documentExists = await firestoreProvider
+            .checkPartnerDocumentExists(userId);
         debugPrint('Partner document exists check: $documentExists');
 
         if (documentExists != true) {
           // Change this line to handle null safely
           // If document doesn't exist, create a basic one with onboarding complete
-          await firestoreProvider.createPartnerProfile(context,
-              userId: userId,
-              name: firebaseAuth.displayName ??
-                  firebaseAuth.email?.split('@')[0] ??
-                  "User",
-              email: firebaseAuth.email ?? "",
-              isOnboardingComplete: true // Set as complete
-              );
+          await firestoreProvider.createPartnerProfile(
+            context,
+            userId: userId,
+            name:
+                firebaseAuth.displayName ??
+                firebaseAuth.email?.split('@')[0] ??
+                "User",
+            email: firebaseAuth.email ?? "",
+            isOnboardingComplete: true, // Set as complete
+          );
           debugPrint('Created missing partner document');
         }
 
-        await _model.initialize(context, userId);
+        await _model.initialize(context);
       } catch (e) {
         debugPrint('Error in _initializeData: $e');
         setState(() {
@@ -92,39 +96,41 @@ class _MyReferralsScreenState extends State<MyReferralsScreen> {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
       value: _model, // Use the existing model instance
-      child: Builder(builder: (context) {
-        if (_isInitializing) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('My Referrals')),
-            body: const Center(child: CircularProgressIndicator()),
-          );
-        }
+      child: Builder(
+        builder: (context) {
+          if (_isInitializing) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('My Referrals')),
+              body: const Center(child: CircularProgressIndicator()),
+            );
+          }
 
-        if (_hasError) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('My Referrals')),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Error: $_errorMessage',
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _initializeData,
-                    child: const Text('Retry'),
-                  ),
-                ],
+          if (_hasError) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('My Referrals')),
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Error: $_errorMessage',
+                      style: const TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: _initializeData,
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        }
+            );
+          }
 
-        return const MyReferralsView();
-      }),
+          return const MyReferralsView();
+        },
+      ),
     );
   }
 }
@@ -137,26 +143,33 @@ class MyReferralsView extends StatelessWidget {
     // Use the existing model from Provider
     final viewModel = Provider.of<MyReferralsModel>(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Referrals'),
-        elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: () async {
-              await Provider.of<AuthProvider>(context, listen: false).signOut();
-              if (context.mounted) {
-                context.go('/signup');
-              }
-            },
-            icon: const Icon(Icons.logout),
-          )
-        ],
-      ),
-      body: viewModel.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : viewModel.hasError
-              ? Center(
+    return RefreshIndicator(
+      onRefresh: () async => await viewModel.initialize(context),
+
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('My Referrals'),
+          elevation: 0,
+          actions: [
+            IconButton(
+              onPressed: () async {
+                await Provider.of<AuthProvider>(
+                  context,
+                  listen: false,
+                ).signOut();
+                if (context.mounted) {
+                  context.go('/signup');
+                }
+              },
+              icon: const Icon(Icons.logout),
+            ),
+          ],
+        ),
+        body:
+            viewModel.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : viewModel.hasError
+                ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -168,20 +181,15 @@ class MyReferralsView extends StatelessWidget {
                       const SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: () {
-                          final firebaseAuth = Provider.of<FirestoreProvider>(
-                                  context,
-                                  listen: false)
-                              .currentUser;
-                          if (firebaseAuth != null) {
-                            viewModel.initialize(context, firebaseAuth.uid);
-                          }
+                          viewModel.initialize(context);
                         },
                         child: const Text('Retry'),
                       ),
                     ],
                   ),
                 )
-              : _buildContent(context, viewModel),
+                : _buildContent(context, viewModel),
+      ),
     );
   }
 
@@ -198,9 +206,7 @@ class MyReferralsView extends StatelessWidget {
             const SizedBox(height: 24),
             const ReferralLinkWidget(),
             const SizedBox(height: 24),
-            BuildWithdrawButton(
-              viewModel: viewModel,
-            ),
+            BuildWithdrawButton(viewModel: viewModel),
             const SizedBox(height: 24),
             Row(
               children: [

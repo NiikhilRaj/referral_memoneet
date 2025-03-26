@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:referral_memoneet/extensions.dart';
 import 'package:referral_memoneet/views/leaderboard/model.dart';
 
 class LeaderboardScreen extends StatelessWidget {
@@ -35,8 +36,23 @@ class _LeaderboardViewState extends State<LeaderboardView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Leaderboard'),
+        title: Consumer<LeaderboardViewModel>(
+          builder:
+              (context, model, child) =>
+                  Text('${model.period} Leaderboard'.toTitleCase()),
+        ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed:
+                () =>
+                    Provider.of<LeaderboardViewModel>(
+                      context,
+                      listen: false,
+                    ).togglePeriod(),
+            icon: Icon(Icons.date_range),
+          ),
+        ],
       ),
       body: Consumer<LeaderboardViewModel>(
         builder: (context, viewModel, child) {
@@ -64,9 +80,7 @@ class _LeaderboardViewState extends State<LeaderboardView> {
           }
 
           if (viewModel.entries.isEmpty) {
-            return const Center(
-              child: Text('No leaderboard data available'),
-            );
+            return const Center(child: Text('No leaderboard data available'));
           }
 
           // Determine how many entries to show (up to 20)
@@ -85,10 +99,10 @@ class _LeaderboardViewState extends State<LeaderboardView> {
                 child: ListTile(
                   leading: _buildRankBadge(index + 1),
                   title: Text(
-                    entry.name,
+                    entry.name ?? "Unknown",
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Text('${entry.score} points'),
+                  subtitle: Text('${entry.score} Referrals'),
                   trailing: Text(
                     'Rs.${entry.earnings} earned',
                     style: TextStyle(

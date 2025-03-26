@@ -7,17 +7,18 @@ class TransactionHistoryScreen extends StatefulWidget {
   const TransactionHistoryScreen({super.key});
 
   @override
-  State<TransactionHistoryScreen> createState() => _TransactionHistoryScreenState();
+  State<TransactionHistoryScreen> createState() =>
+      _TransactionHistoryScreenState();
 }
 
 class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   late TransactionHistoryModel _viewModel;
-  
+
   @override
   void initState() {
     super.initState();
     _viewModel = TransactionHistoryModel();
-    
+
     // Fetch transactions when the screen is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.fetchTransactions();
@@ -29,15 +30,13 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     return ChangeNotifierProvider.value(
       value: _viewModel,
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Transaction History'),
-        ),
+        appBar: AppBar(title: const Text('Transaction History')),
         body: Consumer<TransactionHistoryModel>(
           builder: (context, model, child) {
             if (model.isLoading) {
               return const Center(child: CircularProgressIndicator());
             }
-            
+
             if (model.error != null) {
               return Center(
                 child: Column(
@@ -57,7 +56,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 ),
               );
             }
-            
+
             if (model.transactions.isEmpty) {
               return const Center(
                 child: Text(
@@ -66,7 +65,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 ),
               );
             }
-            
+
             return ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: model.transactions.length,
@@ -80,20 +79,20 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       ),
     );
   }
-  
+
   Widget _buildTransactionCard(Transaction transaction) {
     // Format date
     final dateFormat = DateFormat('MMM d, yyyy');
     final formattedDate = dateFormat.format(transaction.date);
-    
+
     // Format amount
     final amountFormat = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
     final formattedAmount = amountFormat.format(transaction.amount);
-    
+
     // Determine status color
     Color statusColor;
     switch (transaction.status) {
-      case TransactionStatus.completed:
+      case TransactionStatus.success:
         statusColor = Colors.green;
         break;
       case TransactionStatus.pending:
@@ -103,7 +102,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         statusColor = Colors.red;
         break;
     }
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,

@@ -1,14 +1,10 @@
-
 import 'package:flutter/material.dart';
 import 'package:referral_memoneet/views/my_referrals/my_referrals_model.dart';
 
 class ReferralStatsWidget extends StatelessWidget {
   final MyReferralsModel viewModel;
-  
-  const ReferralStatsWidget({
-    required this.viewModel,
-    super.key,
-  });
+
+  const ReferralStatsWidget({required this.viewModel, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,17 +19,22 @@ class ReferralStatsWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildStatItem('Total Referrals', '${viewModel.referralCount}',
-                  isLarge: true),
+              _buildStatItem(
+                'Total Referrals',
+                '${viewModel.referralCount}',
+                isLarge: true,
+              ),
             ],
           ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildStatItem('Total Earnings',
-                  'Rs.${viewModel.referralEarnings.toStringAsFixed(2)}',
-                  isLarge: true),
+              _buildStatItem(
+                'Balance Earnings',
+                'Rs.${viewModel.referralEarnings.toStringAsFixed(2)}',
+                isLarge: true,
+              ),
             ],
           ),
         ],

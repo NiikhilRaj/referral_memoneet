@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:referral_memoneet/models/upi_model.dart';
 import 'package:referral_memoneet/providers/firestore_provider.dart';
-import 'package:referral_memoneet/models/bank_details_model.dart';
+import 'package:referral_memoneet/models/bank_details_model.dart' as bank;
 
 class AddPaymentMethodViewModel extends ChangeNotifier {
   String selectedPaymentMethod = 'UPI';
-  BankDetails bankDetails = BankDetails(
-    accountHolderName: 'john',
-    accountNumber: '3456789',
-    bankName: 'HDFC',
-    branch: 'NYX',
-    ifscCode: 'jytQWUKG8',
+  bank.BankDetails bankDetails = bank.BankDetails(
+    accountHolderName: '',
+    accountNumber: '',
+    bankName: '',
+    branch: '',
+    ifscCode: '',
   );
   String upiId = '';
 
@@ -21,10 +22,18 @@ class AddPaymentMethodViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> saveBankDetails(BuildContext context) async {
-    final firebaseProvider =
-        Provider.of<FirestoreProvider>(context, listen: false);
+  Future<void> saveBankDetails(
+    BuildContext context,
+    bank.BankDetails details,
+  ) async {
+    final db = Provider.of<FirestoreProvider>(context, listen: false);
+
+    await db.addPartnerPaymentMethod(bank: details);
   }
 
-  Future<void> saveUpiDetails() async {}
+  Future<void> saveUpiDetails(BuildContext context, UpiModel details) async {
+    final db = Provider.of<FirestoreProvider>(context, listen: false);
+
+    await db.addPartnerPaymentMethod(upi: details);
+  }
 }

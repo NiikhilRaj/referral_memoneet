@@ -2,26 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:referral_memoneet/views/my_referrals/my_referrals_model.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ReferralLinkWidget extends StatelessWidget {
-  const ReferralLinkWidget({
-    super.key,
-  });
+  const ReferralLinkWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final MyReferralsModel viewModel =
-        Provider.of<MyReferralsModel>(context, listen: false);
+    final MyReferralsModel viewModel = Provider.of<MyReferralsModel>(
+      context,
+      listen: false,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           'Your Referral Link',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         Container(
@@ -41,17 +39,23 @@ class ReferralLinkWidget extends StatelessWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.copy, color: Colors.blue),
-                onPressed: () {
-                  Clipboard.setData(
-                      ClipboardData(text: viewModel.referralLink));
+                onPressed: () async {
+                  await Clipboard.setData(
+                    ClipboardData(text: viewModel.referralLink),
+                  );
+                  if (!context.mounted) return;
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Referral link copied!')),
                   );
                 },
               ),
               IconButton(
-                  icon: const Icon(Icons.share, color: Colors.blue),
-                  onPressed: () {}),
+                icon: const Icon(Icons.share, color: Colors.blue),
+                onPressed: () async {
+                  await Share.share(viewModel.referralLink);
+                },
+              ),
             ],
           ),
         ),

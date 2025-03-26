@@ -1,4 +1,10 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:referral_memoneet/models/payment_method_model.dart';
+import 'package:referral_memoneet/providers/firestore_provider.dart';
+import 'package:referral_memoneet/providers/payments_provider.dart';
 import 'package:referral_memoneet/views/onboarding/onboarding_model.dart';
 
 class WithdrawalRequestModel extends ChangeNotifier {
@@ -6,25 +12,27 @@ class WithdrawalRequestModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   bool _isSuccess = false;
+  int _lastRefresh = DateTime.now().millisecondsSinceEpoch;
+
+  TextEditingController amountController = TextEditingController();
 
   // Form data
-  double _amount = 0.0;
   String _bankName = '';
   String _accountNumber = '';
   String _accountHolderName = '';
   String _ifscCode = '';
-  String _selectedPaymentMethod = 'UPI';
+  String _selectedPaymentMethodId = '';
 
   // Getters
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isSuccess => _isSuccess;
-  double get amount => _amount;
   String get bankName => _bankName;
   String get accountNumber => _accountNumber;
   String get accountHolderName => _accountHolderName;
   String get ifscCode => _ifscCode;
-  String get selectedPaymentMethod => _selectedPaymentMethod;
+  String get selectedPaymentMethodId => _selectedPaymentMethodId;
+  int get lastRefresh => _lastRefresh;
 
   //TODO: make this functional:
   final bankDetails = BankDetails(
@@ -34,9 +42,8 @@ class WithdrawalRequestModel extends ChangeNotifier {
     bankName: "bankName",
   );
 
-  // Setters that notify listeners
-  set amount(double value) {
-    _amount = value;
+  set lastRefresh(int value) {
+    _lastRefresh = value;
     notifyListeners();
   }
 
@@ -60,14 +67,14 @@ class WithdrawalRequestModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  set selectedPaymentMethod(String value) {
-    _selectedPaymentMethod = value;
+  set selectedPaymentMethodId(String value) {
+    _selectedPaymentMethodId = value;
     notifyListeners();
   }
 
   // Methods
   void resetForm() {
-    _amount = 0.0;
+    amountController.clear();
     _bankName = '';
     _accountNumber = '';
     _accountHolderName = '';
@@ -77,41 +84,52 @@ class WithdrawalRequestModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<int> getAvailableBalance() async {
-    return 7;
+  Future<double> getAvailableBalance(BuildContext context) async {
+    final db = Provider.of<FirestoreProvider>(context, listen: false);
+    final balance = await db.fetchBalance();
+    amountController.text = balance.toString();
+    return balance;
   }
 
   Future<String> getActiveUpiID() async {
     return 'meow@wekj';
   }
 
-  Stream<List> availablePaymentMethodsStream() async* {
-    await Future.delayed(Duration(seconds: 2));
-    yield [
-      {
-        "type": "UPI",
-      },
-      {
-        "type": "BANK",
-      }
-    ];
+  Future<List<PaymentMethodModel>> availablePaymentMethods(
+    BuildContext context,
+  ) async {
+    final db = Provider.of<FirestoreProvider>(context, listen: false);
+    final paymentMethods = await db.getPaymentMethods();
+    return paymentMethods;
   }
 
-  Future<bool> submitWithdrawalRequest() async {
+  Future<bool> submitWithdrawalRequest(BuildContext context) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
-    try {
-      // TODO: Implement API call to submit withdrawal request
+    final balance = await getAvailableBalance(context);
+    if (balance < double.parse(amountController.text)) {
+      _isLoading = false;
+      _errorMessage = 'Insufficient balance';
+      notifyListeners();
+      return false;
+    }
 
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
+    try {
+      final payments = Provider.of<PaymentsProvider>(context, listen: false);
+      await payments.withdrawEarnings(
+        amount: double.parse(amountController.text),
+        email: "emai@ekrj.com",
+        name: "xyz",
+        contactNumber: "8947557456",
+      );
 
       // If success
       _isLoading = false;
       _isSuccess = true;
       notifyListeners();
+      if (context.mounted) context.pop();
       return true;
     } catch (e) {
       _isLoading = false;
@@ -122,7 +140,7 @@ class WithdrawalRequestModel extends ChangeNotifier {
   }
 
   bool validateForm() {
-    if (_amount <= 0) {
+    if (double.parse(amountController.text) <= 0) {
       _errorMessage = 'Amount should be greater than 0';
       notifyListeners();
       return false;
@@ -155,5 +173,10 @@ class WithdrawalRequestModel extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
     return true;
+  }
+
+  void refresh() {
+    lastRefresh = DateTime.now().millisecondsSinceEpoch;
+    notifyListeners();
   }
 }

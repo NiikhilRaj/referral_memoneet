@@ -112,12 +112,14 @@ class OnboardingModel extends ChangeNotifier {
       name: map['name'],
       email: map['email'],
       phoneNumber: map['phoneNumber'],
-      bankDetails: map['bankDetails'] != null
-          ? BankDetails.fromMap(map['bankDetails'])
-          : null,
-      upiDetails: map['upiDetails'] != null
-          ? UpiDetails.fromMap(map['upiDetails'])
-          : null,
+      bankDetails:
+          map['bankDetails'] != null
+              ? BankDetails.fromMap(map['bankDetails'])
+              : null,
+      upiDetails:
+          map['upiDetails'] != null
+              ? UpiDetails.fromMap(map['upiDetails'])
+              : null,
       isOnboardingComplete: map['isOnboardingComplete'] ?? false,
     );
   }
@@ -158,21 +160,23 @@ class OnboardingModel extends ChangeNotifier {
       name: nameController!.text,
       email: emailController!.text,
       phoneNumber: phoneController!.text,
-      bankDetails: getUseUpi
-          ? null
-          : BankDetails(
-              accountHolderName: accountHolderNameController!.text,
-              accountNumber: accountNumberController!.text,
-              ifscCode: ifscCodeController!.text,
-              bankName: bankNameController!.text,
-              branch: branchController?.text,
-            ),
-      upiDetails: getUseUpi
-          ? UpiDetails(
-              upiId: upiIdController!.text,
-              upiApp: upiAppController?.text,
-            )
-          : null,
+      bankDetails:
+          getUseUpi
+              ? null
+              : BankDetails(
+                accountHolderName: accountHolderNameController!.text,
+                accountNumber: accountNumberController!.text,
+                ifscCode: ifscCodeController!.text,
+                bankName: bankNameController!.text,
+                branch: branchController?.text,
+              ),
+      upiDetails:
+          getUseUpi
+              ? UpiDetails(
+                upiId: upiIdController!.text,
+                upiApp: upiAppController?.text,
+              )
+              : null,
       isOnboardingComplete: true,
     );
 
@@ -217,11 +221,11 @@ class BankDetails {
     String ifscCode = '',
     String bankName = '',
     String? branch,
-  })  : _accountHolderName = accountHolderName,
-        _accountNumber = accountNumber,
-        _ifscCode = ifscCode,
-        _bankName = bankName,
-        _branch = branch;
+  }) : _accountHolderName = accountHolderName,
+       _accountNumber = accountNumber,
+       _ifscCode = ifscCode,
+       _bankName = bankName,
+       _branch = branch;
 
   BankDetails copyWith({
     String? accountHolderName,
@@ -269,15 +273,9 @@ class UpiDetails {
   final String upiId;
   final String? upiApp;
 
-  UpiDetails({
-    required this.upiId,
-    this.upiApp,
-  });
+  UpiDetails({required this.upiId, this.upiApp});
 
-  UpiDetails copyWith({
-    String? upiId,
-    String? upiApp,
-  }) {
+  UpiDetails copyWith({String? upiId, String? upiApp}) {
     return UpiDetails(
       upiId: upiId ?? this.upiId,
       upiApp: upiApp ?? this.upiApp,
@@ -285,17 +283,11 @@ class UpiDetails {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'upiId': upiId,
-      'upiApp': upiApp,
-    };
+    return {'upiId': upiId, 'upiApp': upiApp};
   }
 
   factory UpiDetails.fromMap(Map<String, dynamic> map) {
-    return UpiDetails(
-      upiId: map['upiId'] ?? '',
-      upiApp: map['upiApp'],
-    );
+    return UpiDetails(upiId: map['upiId'] ?? '', upiApp: map['upiApp']);
   }
 
   String toJson() => json.encode(toMap());

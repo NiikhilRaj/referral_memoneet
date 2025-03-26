@@ -15,11 +15,12 @@ class DynamicLinksProvider extends ChangeNotifier {
     final dynamicLinkParams = DynamicLinkParameters(
       uriPrefix: _domain,
       link: Uri.parse(
-          'https://referralmemoneet.page.link/referral?partnerId=$partnerId'),
-      // androidParameters: const AndroidParameters(
-      //   packageName: 'com.example.referral_memoneet',
-      //   minimumVersion: 1,
-      // ),
+        'https://referralmemoneet.page.link/signup?referral=$partnerId',
+      ),
+      androidParameters: const AndroidParameters(
+        packageName: 'com.example.referral_memoneet',
+        minimumVersion: 1,
+      ),
       // iosParameters: const IOSParameters(
       //   bundleId: 'com.example.referralMemoneet',
       //   minimumVersion: '1.0.0',
@@ -50,16 +51,18 @@ class DynamicLinksProvider extends ChangeNotifier {
     }
 
     // Listen to incoming dynamic links when the app is already running
-    FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
-      final partnerId = _extractPartnerId(dynamicLinkData.link);
-      // You can call a method to process this partnerId
-      if (partnerId != null) {
-        processReferral(partnerId);
-      }
-    }).onError((error) {
-      // Handle errors
-      debugPrint('Dynamic link error: $error');
-    });
+    FirebaseDynamicLinks.instance.onLink
+        .listen((dynamicLinkData) {
+          final partnerId = _extractPartnerId(dynamicLinkData.link);
+          // You can call a method to process this partnerId
+          if (partnerId != null) {
+            processReferral(partnerId);
+          }
+        })
+        .onError((error) {
+          // Handle errors
+          debugPrint('Dynamic link error: $error');
+        });
 
     return null;
   }

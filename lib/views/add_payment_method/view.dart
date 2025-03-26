@@ -11,8 +11,9 @@ class AddPaymentMethodWidget extends StatelessWidget {
   // Create a consumer with the new view model
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-        create: (_) => AddPaymentMethodViewModel(),
-        child: AddPaymentMethodView());
+      create: (_) => AddPaymentMethodViewModel(),
+      child: AddPaymentMethodView(),
+    );
   }
 }
 
@@ -29,39 +30,41 @@ class AddPaymentMethodView extends StatelessWidget {
         ),
       ),
       body: Consumer<AddPaymentMethodViewModel>(
-          builder: (context, viewModel, child) {
-        return Column(
-          children: [
-            // UPI Option
-            RadioListTile<String>(
-              title: const Text('UPI'),
-              value: "UPI",
-              groupValue: viewModel.selectedPaymentMethod,
-              onChanged: (value) => viewModel.setPaymentMethod(value!),
-            ),
+        builder: (context, viewModel, child) {
+          return Column(
+            children: [
+              // UPI Option
+              RadioListTile<String>(
+                title: const Text('UPI'),
+                value: "UPI",
+                groupValue: viewModel.selectedPaymentMethod,
+                onChanged: (value) => viewModel.setPaymentMethod(value!),
+              ),
 
-            // Bank Transfer Option
-            RadioListTile<String>(
-              title: const Text('Bank Transfer'),
-              value: "BANK",
-              groupValue: viewModel.selectedPaymentMethod,
-              onChanged: (value) => viewModel.setPaymentMethod(value!),
-            ),
+              // Bank Transfer Option
+              RadioListTile<String>(
+                title: const Text('Bank Transfer'),
+                value: "BANK",
+                groupValue: viewModel.selectedPaymentMethod,
+                onChanged: (value) => viewModel.setPaymentMethod(value!),
+              ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // Payment Details Form
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: viewModel.selectedPaymentMethod == "UPI"
-                  ? WithdrayUpiForm()
-                  : BankTransferForm(),
-            ),
+              // Payment Details Form
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child:
+                    viewModel.selectedPaymentMethod == "UPI"
+                        ? WithdrayUpiForm()
+                        : BankTransferForm(),
+              ),
 
-            const SizedBox(height: 30),
-          ],
-        );
-      }),
+              const SizedBox(height: 30),
+            ],
+          );
+        },
+      ),
     );
   }
 }

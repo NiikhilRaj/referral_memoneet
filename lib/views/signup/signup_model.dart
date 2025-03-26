@@ -107,7 +107,9 @@ class SignupViewModel extends ChangeNotifier {
         // Handle login
         debugPrint('Logging in user with email: $_email');
         final userCredential = await _auth.signInWithEmailAndPassword(
-            email: _email, password: _password);
+          email: _email,
+          password: _password,
+        );
 
         debugPrint('User logged in with UID: ${userCredential.user!.uid}');
 
@@ -118,27 +120,48 @@ class SignupViewModel extends ChangeNotifier {
         // Handle signup
         debugPrint('Creating new user with email: $_email');
         final userCredential = await _auth.createUserWithEmailAndPassword(
-            email: _email, password: _password);
+          email: _email,
+          password: _password,
+        );
 
         debugPrint('User created with UID: ${userCredential.user!.uid}');
 
         // Create initial user entry in Firestore
-        final firestoreProvider =
-            Provider.of<FirestoreProvider>(context, listen: false);
+        final firestoreProvider = Provider.of<FirestoreProvider>(
+          context,
+          listen: false,
+        );
 
         // Create complete partner profile with onboarding flag set to true
-        await firestoreProvider.createPartnerProfile(context,
+        if (type == UserType.partner) {
+          await firestoreProvider.createPartnerProfile(
+            context,
             userId: userCredential.user!.uid,
             name: _name, // Use the name collected at signup
             email: _email,
-            referralCode: referralCodeController.text.isNotEmpty
-                ? referralCodeController.text
-                : null,
-            isOnboardingComplete: true // Set onboarding as complete
-            );
+            referralCode:
+                referralCodeController.text.isNotEmpty
+                    ? referralCodeController.text
+                    : null,
+            isOnboardingComplete: true, // Set onboarding as complete
+          );
+        } else if (type == UserType.student) {
+          await firestoreProvider.createStudentProfile(
+            context,
+            userId: userCredential.user!.uid,
+            name: _name, // Use the name collected at signup
+            email: _email,
+            referralCode:
+                referralCodeController.text.isNotEmpty
+                    ? referralCodeController.text
+                    : null,
+            isOnboardingComplete: true, // Set onboarding as complete
+          );
+        }
 
         debugPrint(
-            'Partner profile created for ${userCredential.user!.uid} with name: $_name');
+          'Partner profile created for ${userCredential.user!.uid} with name: $_name',
+        );
 
         // Set display name in Firebase Auth
         await userCredential.user!.updateDisplayName(_name);
@@ -153,7 +176,8 @@ class SignupViewModel extends ChangeNotifier {
       }
     } on FirebaseAuthException catch (e) {
       debugPrint(
-          'FirebaseAuthException in submitForm: ${e.code} - ${e.message}');
+        'FirebaseAuthException in submitForm: ${e.code} - ${e.message}',
+      );
       _errorMessage = e.message ?? 'An authentication error occurred';
       _isLoading = false;
       notifyListeners();

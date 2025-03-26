@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:referral_memoneet/providers/auth_provider.dart';
 import 'package:referral_memoneet/providers/firestore_provider.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:clipboard/clipboard.dart';
@@ -8,7 +9,7 @@ import 'package:referral_memoneet/views/transaction_history/transaction_model.da
 
 class MyReferralsModel extends ChangeNotifier {
   String _userName = "";
-  String _profilePictureUrl = "";
+  String _profilePictureUrl = "https://picsum.photos/200/300";
   String _referralLink = "";
   int _referralCount = 0;
   double _referralEarnings = 0.0;
@@ -27,21 +28,34 @@ class MyReferralsModel extends ChangeNotifier {
   String get errorMessage => _errorMessage;
 
   // Initialize with user data
-  Future<void> initialize(BuildContext context, String userId) async {
+  Future<void> initialize(BuildContext context) async {
     try {
       _setLoading(true);
 
-      final firestoreProvider =
-          Provider.of<FirestoreProvider>(context, listen: false);
+      final firestoreProvider = Provider.of<FirestoreProvider>(
+        context,
+        listen: false,
+      );
+
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      if (authProvider.currentUser == null) {
+        debugPrint('User not logged in');
+        return;
+      }
+      final userId = authProvider.currentUser!.uid;
 
       // Fetch partner details from Firestore
       final partnerData = await firestoreProvider.getPartnerDetails(userId);
 
       if (partnerData != null) {
         _userName = partnerData['name'] ?? "User";
-        _profilePictureUrl = partnerData['photoURL'] ?? "";
+        _profilePictureUrl =
+            partnerData['photoURL'] ?? "https://picsum.photos/200/300";
         _referralCount = partnerData['referralCount'] ?? 0;
-        _referralEarnings = (partnerData['referralEarnings'] ?? 0).toDouble();
+        _referralEarnings = double.parse(
+          (partnerData['referralEarnings'] ?? 0).toString(),
+        );
 
         // Generate referral link if not already available
         if (_referralLink.isEmpty) {
@@ -76,8 +90,9 @@ class MyReferralsModel extends ChangeNotifier {
 
       // Create a dynamic link using Firebase Dynamic Links
       final dynamicLinkParams = DynamicLinkParameters(
-        link:
-            Uri.parse('https://referralmemoneet.page.link/signup?ref=$userId'),
+        link: Uri.parse(
+          'https://referralmemoneet.page.link/signup?ref=$userId',
+        ),
         uriPrefix: 'https://referralmemoneet.page.link',
         androidParameters: const AndroidParameters(
           packageName: 'com.memoneet.referral_app',
@@ -129,10 +144,14 @@ class MyReferralsModel extends ChangeNotifier {
 
   // Fetch user's referrals
   Future<List<Map<String, dynamic>>> fetchUserReferrals(
-      BuildContext context, String userId) async {
+    BuildContext context,
+    String userId,
+  ) async {
     try {
-      final firestoreProvider =
-          Provider.of<FirestoreProvider>(context, listen: false);
+      final firestoreProvider = Provider.of<FirestoreProvider>(
+        context,
+        listen: false,
+      );
       return await firestoreProvider.getPartnerReferrals(userId);
     } catch (e) {
       _setError("Failed to fetch referrals: ${e.toString()}");
@@ -141,8 +160,13 @@ class MyReferralsModel extends ChangeNotifier {
   }
 
   // Request withdrawal
-  Future<bool> requestWithdrawal(BuildContext context, String userId,
-      double amount, String paymentMethod, String paymentDetails) async {
+  Future<bool> requestWithdrawal(
+    BuildContext context,
+    String userId,
+    double amount,
+    String paymentMethod,
+    String paymentDetails,
+  ) async {
     try {
       if (amount > _referralEarnings) {
         _setError("Insufficient balance for withdrawal");
@@ -151,13 +175,16 @@ class MyReferralsModel extends ChangeNotifier {
 
       _setLoading(true);
 
-      final firestoreProvider =
-          Provider.of<FirestoreProvider>(context, listen: false);
+      final firestoreProvider = Provider.of<FirestoreProvider>(
+        context,
+        listen: false,
+      );
 
       // Convert payment method string to enum
-      final paymentMode = paymentMethod == 'UPI'
-          ? transaction.PaymentMode.upi
-          : transaction.PaymentMode.bankAccount;
+      final paymentMode =
+          paymentMethod == 'UPI'
+              ? transaction.PaymentMode.upi
+              : transaction.PaymentMode.bankAccount;
 
       await firestoreProvider.createWithdrawalTransaction(
         partnerId: userId,
